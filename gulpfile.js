@@ -17,6 +17,7 @@ var reload = browserSync.reload;
 var runSequence = require('run-sequence');
 var sass = require('gulp-sass');
 var source = require('vinyl-source-stream');
+var streamqueue = require('streamqueue');
 var streamify = require('gulp-streamify');
 var uglify = require('gulp-uglify');
 
@@ -29,6 +30,9 @@ var config = {
 			fabricator: [
 				'src/assets/fabricator/scripts/prism.js',
 				'src/assets/fabricator/scripts/fabricator.js'
+			],
+			vendor: [
+				'bower_components/jquery/dist/jquery.js'
 			],
 			toolkit: './src/assets/toolkit/scripts/toolkit.js'
 		},
@@ -85,15 +89,26 @@ gulp.task('scripts:fabricator', function () {
 });
 
 gulp.task('scripts:toolkit', function () {
-	return browserify(config.src.scripts.toolkit)
-		.bundle()
-		.on('error', function (error) {
-			gutil.log(gutil.colors.red(error));
-			this.emit('end');
-		})
-		.pipe(source('toolkit.js'))
+
+	var toolkit = function () {
+		return browserify(config.src.scripts.toolkit).bundle()
+			.on('error', function (error) {
+				gutil.log(gutil.colors.red(error));
+				this.emit('end');
+			})
+			.pipe(source('toolkit.js'));
+	};
+
+	var vendor = function () {
+		return gulp.src(config.src.scripts.vendor)
+			.pipe(concat('vendor.js'));
+	};
+
+	return streamqueue({ objectMode: true }, vendor(), toolkit())
+		.pipe(streamify(concat('toolkit.js')))
 		.pipe(gulpif(!config.dev, streamify(uglify())))
 		.pipe(gulp.dest(config.dest + '/assets/toolkit/scripts'));
+
 });
 
 gulp.task('scripts', ['scripts:fabricator', 'scripts:toolkit']);
