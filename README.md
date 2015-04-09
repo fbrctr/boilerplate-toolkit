@@ -1,3 +1,5 @@
+**Disclaimer** - This is a work in progress and is not ready for consumption. [Reach out](http://twitter.com/lukeaskew) if you'd like to contribute. 
+
 # Boilerplate Toolkit
 
 The Boilerplate Toolkit UI toolkit is a highly-modular design system for rapid web page development. It contains different materials that can be assembled into more complex page layouts.
